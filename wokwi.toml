@@ -1,0 +1,4 @@
+[wokwi]
+version = 1
+firmware = 'build/my_watch.bin'
+elf = 'build/my_watch.elf'
