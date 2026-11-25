@@ -1,3 +1,3 @@
 idf_component_register(SRCS "main.c"
                     INCLUDE_DIRS "."
-                    PRIV_REQUIRES sys_info)
+                    PRIV_REQUIRES sys_info esp_timer log)
