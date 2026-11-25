@@ -21,8 +21,7 @@ static void worker_task(void* arg)
 
 static void ui_task(void* arg)
 {
-    QueueHandle_t q = event_bus_subscribe("ui", 8);
-    configASSERT(q);                                //halts the execusion with an explicit message if q == NULL
+    QueueHandle_t q = (QueueHandle_t)arg;
     app_event_t evt;
 
     for(;;)
@@ -34,8 +33,7 @@ static void ui_task(void* arg)
 }
 
 static void power_task(void* arg){
-    QueueHandle_t q = event_bus_subscribe("power", 8);
-    configASSERT(q);
+    QueueHandle_t q = (QueueHandle_t)arg;
     app_event_t evt;
 
     for(;;)
@@ -53,9 +51,12 @@ void app_main(void)
     event_bus_init();
     sys_info_print();
 
-    xTaskCreate(ui_task, "ui_task", 4096, NULL, 4, NULL);
-    xTaskCreate(power_task, "power_task", 4096, NULL, 5, NULL);
-    xTaskCreate(worker_task, "worker_task", 4096, NULL, 5, NULL);
+    QueueHandle_t ui_q = event_bus_subscribe("ui", 8);
+    QueueHandle_t power_q = event_bus_subscribe("power", 8);
+
+    xTaskCreate(ui_task, "ui_task", 4096, ui_q, 4, NULL);
+    xTaskCreate(power_task, "power_task", 4096, power_q, 5, NULL);
 
     event_bus_post(EVT_BOOT_DONE, 0);
+    xTaskCreate(worker_task, "worker_task", 4096, NULL, 5, NULL);
 }
