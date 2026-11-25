@@ -14,7 +14,7 @@ void sys_info_print(void)
     esp_chip_info(&chip_info);
 
    ESP_LOGI(TAG, "Version: %s", esp_app_get_description()->version);
-   ESP_LOGI(TAG, "Cores: %d, Revision: v%d.%d", chip_info.cores, chip_info.revision, chip_info.revision % 100);
+   ESP_LOGI(TAG, "Cores: %d, Revision: v%d.%d", chip_info.cores, chip_info.revision / 100, chip_info.revision % 100);
    ESP_LOGI(TAG, "Running partition: %s", running->label);
    ESP_LOGI(TAG, "Free heap: %lu bytes", (unsigned long)esp_get_free_heap_size());
 }
