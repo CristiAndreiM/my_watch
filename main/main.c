@@ -22,6 +22,7 @@ static void worker_task(void* arg)
 static void ui_task(void* arg)
 {
     QueueHandle_t q = event_bus_subscribe("ui", 8);
+    configASSERT(q);                                //halts the execusion with an explicit message if q == NULL
     app_event_t evt;
 
     for(;;)
@@ -34,6 +35,7 @@ static void ui_task(void* arg)
 
 static void power_task(void* arg){
     QueueHandle_t q = event_bus_subscribe("power", 8);
+    configASSERT(q);
     app_event_t evt;
 
     for(;;)
