@@ -6,6 +6,10 @@
 #include "esp_timer.h"
 #include "esp_log.h"
 
+#define DEBOUNCE_MS     30
+#define LONG_PRESS_MS   800
+#define BUTTON_TASK_STACK 3072
+
 static const char* TAG = "button_driver";
 static QueueHandle_t s_edge_q = NULL;
 
@@ -43,7 +47,7 @@ static void button_task(void* arg)
                 is_pressed = false;
                 int64_t duration_ms = (esp_timer_get_time() - press_time_us) / 1000;
 
-                if(duration_ms >= 800)
+                if(duration_ms >= LONG_PRESS_MS)
                 {
                     ESP_LOGI(TAG, "LONG press (%lld ms)", duration_ms);
                     event_bus_post(EVT_BUTTON_LONG, (uint32_t)duration_ms);
@@ -53,6 +57,8 @@ static void button_task(void* arg)
                     ESP_LOGI(TAG, "SHORT press (%lld ms)", duration_ms);
                     event_bus_post(EVT_BUTTON_SHORT, (uint32_t)duration_ms);
                 }
+
+                ESP_LOGD(TAG, "Stack free: %u bytes", (unsigned)uxTaskGetStackHighWaterMark(NULL));
             }
         }
     }
@@ -66,7 +72,7 @@ esp_err_t button_driver_init(gpio_num_t pin)
         return ESP_ERR_NO_MEM;
     }
 
-    BaseType_t ok = xTaskCreate(button_task, "button_task", 2048, NULL, 10, NULL);
+    BaseType_t ok = xTaskCreate(button_task, "button_task", BUTTON_TASK_STACK, NULL, 10, NULL);
     if(ok != pdPASS)
     {
         return ESP_FAIL;

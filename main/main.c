@@ -1,6 +1,8 @@
+#include "board_config.h"
 #include "sys_info.h"
 #include "event_bus.h"
 #include "button_driver.h"
+#include "i2c_bus.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "freertos/queue.h"
@@ -61,5 +63,8 @@ void app_main(void)
     event_bus_post(EVT_BOOT_DONE, 0);
     xTaskCreate(worker_task, "worker_task", 4096, NULL, 5, NULL);
 
-    ESP_ERROR_CHECK(button_driver_init(GPIO_NUM_0));
+    ESP_ERROR_CHECK(button_driver_init(PIN_BUTTON));
+
+    ESP_ERROR_CHECK(i2c_bus_init(PIN_I2C_SDA, PIN_I2C_SCL));
+    i2c_bus_scan();
 }
