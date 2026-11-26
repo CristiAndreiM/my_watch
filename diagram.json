@@ -15,7 +15,7 @@
     [ "btn:2.l", "esp:GND.1", "black",   [] ],
     
     [ "rtc:GND", "esp:GND.1", "black",   [] ],
-    [ "rtc:5v", "esp:3v3.1", "red",      [] ],
+    [ "rtc:5V",  "esp:3V3.1", "red",      [] ],
     [ "rtc:SDA", "esp:8", "blue",        [] ],
     [ "rtc:SCL", "esp:9", "yellow",      [] ]
   ]
