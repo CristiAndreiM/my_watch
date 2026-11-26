@@ -1,5 +1,6 @@
 #include "sys_info.h"
 #include "event_bus.h"
+#include "button_driver.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "freertos/queue.h"
@@ -59,4 +60,6 @@ void app_main(void)
 
     event_bus_post(EVT_BOOT_DONE, 0);
     xTaskCreate(worker_task, "worker_task", 4096, NULL, 5, NULL);
+
+    ESP_ERROR_CHECK(button_driver_init(GPIO_NUM_0));
 }
