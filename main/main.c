@@ -5,6 +5,7 @@
 #include "i2c_bus.h"
 #include "time_service.h"
 #include "rtc_driver.h"
+#include "display_driver.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "freertos/queue.h"
@@ -44,6 +45,11 @@ static void ui_task(void* arg)
             }
             else if(evt.type == EVT_TIME_TICK)
             {
+                static bool blink = false;
+                blink = !blink;
+                uint16_t color = blink ? RGB565(255, 255, 255) : RGB565(0, 0, 0);
+                display_fill_rect(display_width() - 30, 10, 20, 20, color);
+
                 struct tm t = {0};
 
                 if(time_service_get_local(&t) == ESP_OK)
@@ -90,9 +96,18 @@ void app_main(void)
 
     ESP_ERROR_CHECK(i2c_bus_init(PIN_I2C_SDA, PIN_I2C_SCL));
     i2c_bus_scan();
-    ESP_ERROR_CHECK(rtc_driver_init());
+
+    esp_err_t rtc_err = rtc_driver_init();
+    if (rtc_err != ESP_OK)
+        ESP_LOGW(TAG, "RTC init failed (%s), running without external RTC", esp_err_to_name(rtc_err));
     ESP_ERROR_CHECK(time_service_init());
     ESP_ERROR_CHECK(button_driver_init(PIN_BUTTON));
 
+    ESP_ERROR_CHECK(display_init());
+    display_fill_rect(0, 0, display_width(), display_height(), RGB565(0, 0, 0));
+
+    display_fill_rect(20, 40, 200, 40, RGB565(255, 0, 0));
+    display_fill_rect(20, 100, 200, 40, RGB565(0, 255, 0));
+    display_fill_rect(20, 160, 200, 40, RGB565(0, 0, 255));
     event_bus_post(EVT_BOOT_DONE, 0);
 }

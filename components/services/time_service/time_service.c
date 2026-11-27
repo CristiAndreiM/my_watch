@@ -6,8 +6,9 @@
 #include <sys/time.h>
 #include <stdlib.h>
 
-static const char* TAG = "time_service.c";
+static const char* TAG = "time_service";
 static int32_t s_tick_count = 0;
+static esp_timer_handle_t s_tick_timer = NULL;
 
 static void tick_timer_cb(void *arg)
 {
@@ -22,19 +23,16 @@ esp_err_t time_service_init(void)
     {
         setenv("TZ", "UTC0", 1);
         tzset();
-        rtc_time.tm_isdst = 0;
-        time_t epoch = mktime(&rtc_time);
         
-        if(epoch != (time_t)-1)
-        {
-            struct timeval tv = { .tv_sec = epoch };
-            settimeofday(&tv, NULL); 
-        }
+        time_t epoch = mktime(&rtc_time);
+        struct timeval tv = { .tv_sec = epoch };
+        settimeofday(&tv, NULL);
     }
     else
     {
         ESP_LOGW(TAG, "Failed to read RTC (%s), continuing without sync", esp_err_to_name(err));
     }
+
     setenv("TZ", "EET-2EEST,M3.5.0/3,M10.5.0/4", 1);
     tzset();
 
@@ -42,9 +40,12 @@ esp_err_t time_service_init(void)
         .callback = tick_timer_cb,
         .name = "time_tick",
     };
-    esp_timer_handle_t timer = NULL;
-    ESP_ERROR_CHECK(esp_timer_create(&timer_args, &timer));
-    return esp_timer_start_periodic(timer, 1000000);
+    
+    err = esp_timer_create(&timer_args, &s_tick_timer);
+    if(err != ESP_OK)
+        return err;
+
+    return esp_timer_start_periodic(s_tick_timer, 1000000);
 }
 
 esp_err_t time_service_get_local(struct tm *out)
