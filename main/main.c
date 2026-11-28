@@ -63,9 +63,14 @@ static void ui_task(void* arg)
                     ESP_LOGW(TAG, "[ui] Failed to get local time");
                 }
             }
-
+            else if (evt.type == EVT_BOOT_DONE)
+            {
+            display_fill_rect(0, 0, display_width(), display_height(), RGB565(0, 0, 0));
+            display_fill_rect(20, 40, 200, 40, RGB565(255, 0, 0));
+            display_fill_rect(20, 100, 200, 40, RGB565(0, 255, 0));
+            display_fill_rect(20, 160, 200, 40, RGB565(0, 0, 255));
+            }
         }
-      
     }
 }
 
@@ -100,14 +105,11 @@ void app_main(void)
     esp_err_t rtc_err = rtc_driver_init();
     if (rtc_err != ESP_OK)
         ESP_LOGW(TAG, "RTC init failed (%s), running without external RTC", esp_err_to_name(rtc_err));
+    
+    ESP_ERROR_CHECK(display_init());
+
     ESP_ERROR_CHECK(time_service_init());
     ESP_ERROR_CHECK(button_driver_init(PIN_BUTTON));
-
-    ESP_ERROR_CHECK(display_init());
-    display_fill_rect(0, 0, display_width(), display_height(), RGB565(0, 0, 0));
-
-    display_fill_rect(20, 40, 200, 40, RGB565(255, 0, 0));
-    display_fill_rect(20, 100, 200, 40, RGB565(0, 255, 0));
-    display_fill_rect(20, 160, 200, 40, RGB565(0, 0, 255));
+    
     event_bus_post(EVT_BOOT_DONE, 0);
 }

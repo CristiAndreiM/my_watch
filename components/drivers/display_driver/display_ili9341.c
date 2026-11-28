@@ -67,16 +67,27 @@ esp_err_t display_init(void)
     err = esp_lcd_new_panel_ili9341(s_io, &panel_cfg, &s_panel);
     if(err != ESP_OK) return err;
 
-    esp_lcd_panel_reset(s_panel);
-    esp_lcd_panel_init(s_panel);
+    err = esp_lcd_panel_reset(s_panel);
+    if(err != ESP_OK) return err;
+
+    err = esp_lcd_panel_init(s_panel);
+    if(err != ESP_OK) return err;
     return esp_lcd_panel_disp_on_off(s_panel, true);
 }
 
 esp_err_t display_fill_rect(int x, int y, int w, int h, uint16_t color)
 {
-    if(w <= 0 || h <= 0)
-        return ESP_OK;
+    if(s_panel == NULL || s_dma_done == NULL || s_buf == NULL)
+        return ESP_ERR_INVALID_STATE;
     
+    if (x < 0) { w += x; x = 0; }
+    if (y < 0) { h += y; y = 0; }
+    if (x + w > LCD_H_RES) { w = LCD_H_RES - x; }
+    if (y + h > LCD_V_RES) { h = LCD_V_RES - y; }
+
+    if (w <= 0 || h <= 0)
+        return ESP_OK;
+        
     uint16_t swapped = __builtin_bswap16(color);
 
     xSemaphoreTake(s_dma_done, portMAX_DELAY);
